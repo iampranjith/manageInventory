@@ -41,7 +41,6 @@ class ManageInventorySpider(scrapy.Spider):
 
     def parse_edit_info(self, response):
         #print("-------Edit Product Info Page----url")
-
                             # Text Label Names From Inspected Code
         js_t_label=['item_name', 'manufacturer', 'model', 'part_number', 'color_name', 'color_map', 'size_name', 'size_map',
          'brand_name', 'related_product_id', 'external_product_id', 'legal_compliance_certification_metadata',
@@ -103,16 +102,34 @@ class ManageInventorySpider(scrapy.Spider):
         img_names = ['main_image', 'img_1', 'img_2', 'img_3', 'img_4', 'img_5', 'img_6', 'img_7', 'img_8']
         img_dict = dict(zip(img_names, img_values))
 
+                            # Number LAbel Names from Inspected Code
+        js_num_label=['item_package_quantity', 'max_order_quantity', 'fulfillment_latency', 'number_of_sets','thread_count',
+         ' Number of Batteries Required', ' Battery Type: Lithium ion', ' Battery Type: Lithium Metal',
+         ' Number of Pieces', ' Number of Lithium-ion Cells', ' Number of Lithium Metal Cells',' Max Aggregate Ship Quantity']
+                            # Number Label Names from UI
+        ui_number_label=[' Package Quantity', ' Max Order Quantity', ' Handling Time', ' Number of Sets',
+         ' Thread Countnumber_of_batteries', 'battery_type_lithium_ion', 'battery_type_lithium_metal',
+         'number_of_pieces', 'number_of_lithium_ion_cells', 'number_of_lithium_metal_cells',
+         'max_aggregate_ship_quantity']
+                            # To Form Number Dictionary Fields
+        #js_number_label = response.xpath('.//*[@type="number"]/@name').extract()
+        number_label_values = response.xpath('.//*[@type="number"]/@value').extract()
+        number_fields = dict(zip(ui_number_label, number_label_values))
+
                             #  Merging Of all Dictionary and Find Empty Fields
         text_fields.update(img_dict)
+        text_fields.update(number_fields)
         emptey_fields = [i for i in text_fields.keys() if text_fields[i] is ""]
 
-        print(text_fields)
-        print(len(text_fields))
-        print("Emptey Fields List-------------------------------")
-        print(emptey_fields)
-        print(len(emptey_fields))
-        #yield {'names':ui_text_label}
+
+
+        #print(text_fields)
+        #print(len(text_fields))
+        #print("Emptey Fields List-------------------------------")
+        #print(number_fields)
+        #print(emptey_fields)
+        #print(len(emptey_fields))
+        ##yield {'names':ui_text_label}
         #yield (fields)
-        #yield {'Emptey': emptey_fields}
-        print("----------------------------------------------------------")
+        yield {'Emptey': emptey_fields}
+        #print("----------------------------------------------------------")
