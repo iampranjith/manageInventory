@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+    # -*- coding: utf-8 -*-
 import scrapy
 from scrapy.http import FormRequest, Request
 import re
@@ -19,25 +19,80 @@ class ManageInventorySpider(scrapy.Spider):
         hidden_field_names = signin_form.xpath('.//*[@type="hidden"]/@name').extract()
         hidden_field_values = signin_form.xpath('.//*[@type="hidden"]/@value').extract()
         hidden_agg = dict(zip(hidden_field_names, hidden_field_values))
-        hidden_agg['email'] = 'chinnu@onedatasoftware.com'
-        hidden_agg['password'] = 'Teba2009'
+        hidden_agg['email'] = 'chintom'
+        hidden_agg['password'] = '20fg09'
         return FormRequest.from_response(response,
                                          formdata=hidden_agg,
-                                         callback=self.scrape_home)
+                                         callback=self.parse_selection)
+
+    def parse_selection(self, response):
+        print("############################")
+        #                       HomePAge: Amazon Selling Coach
+        home_text=response.xpath('//*[@id="widget-fuJi9w"]/div/div[1]/h2/text()').extract_first()
+        print(home_text)
+        #                       Captcha Page:
+        captchapage_text=response.xpath('//*[@id="ap_captcha_title"]/h2/text()').extract_first()  # Type charectors you....
+        captcha_src=response.xpath('//*[@id="ap_captcha_img"]/img/@src').extract_first()          # CaptchaImage xpath
+        print(captcha_src)
+        print(captchapage_text)
+        print("********#############********")
+        #                       Incorrect Password:
+        incorect_text=response.xpath('//*[@id="message_error"]/p/text()').extract_first()  # Your Password is Incorrect
+        print(incorect_text)
+        print("******************************")
+
+
+        if captchapage_text is not None:
+            print("Captcha Page")
+            print(captchapage_text)
+            print(captcha_src)
+
+        if incorect_text is not None:
+            print(incorect_text)
+
+
+
+        if home_text is not None:
+            print(home_text)
+            asin_id = self.pid[0]
+            search_url = 'https://sellercentral.amazon.com/inventory/ref=ag_invmgr_dnav_xx_?tbla_myitable=sort:%7B%22sortOrder%22%3A%22DESCENDING%22%2C%22sortedColumnId%22%3A%22date%22%7D;search:BBBBBBBBBB;pagination:1;'
+            next_page_url = re.sub('BBBBBBBBBB', asin_id, search_url)
+            yield Request(url=next_page_url,
+                          callback=self.parse_manage_inventory)
+
+
+
+
+
+
+
+
+
+    """
 
     def scrape_home(self, response):
+        
+        
         asin_id=self.pid[0]
         search_url = 'https://sellercentral.amazon.com/inventory/ref=ag_invmgr_dnav_xx_?tbla_myitable=sort:%7B%22sortOrder%22%3A%22DESCENDING%22%2C%22sortedColumnId%22%3A%22date%22%7D;search:BBBBBBBBBB;pagination:1;'
         next_page_url=re.sub('BBBBBBBBBB', asin_id, search_url)
-        yield Request(url=next_page_url, callback=self.parse_manage_inventory)
+        yield Request(url=next_page_url,
+                      callback=self.parse_manage_inventory)
 
+
+    """
+    
+    
+    
+    
     def parse_manage_inventory(self, response):
 
         option_tag = response.xpath('//div[@class="mt-save-button-dropdown-normal"]/span/select/option[1]').extract_first()
         url_list = re.findall("http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+",
                               option_tag)
         url_to_edit_info = url_list[0].replace("amp;", "")
-        yield Request(url=url_to_edit_info, callback=self.parse_edit_info)
+        yield Request(url=url_to_edit_info,
+                      callback=self.parse_edit_info)
 
     def parse_edit_info(self, response):
         #print("-------Edit Product Info Page----url")
